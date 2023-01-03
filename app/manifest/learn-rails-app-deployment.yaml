@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: learn-rails-app-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: learn-rails-app
+  template:
+    metadata:
+      labels:
+        app: learn-rails-app
+    spec:
+      containers:
+      - name: learn-rails-app
+        image: {{ IMAGE }}
+        ports:
+        - containerPort: 3000
+        env:
+          - name: RAILS_MASTER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: rails-master-key
+                key: rails_master_key
+                optional: false
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: postgres-production-uri
+                key: postgres_production_uri
+                optional: false
+          - name: REDIS_URL
+            valueFrom:
+              secretKeyRef:
+                name: redis-production-uri
+                key: redis_production_uri
+                optional: false
+      imagePullSecrets:
+      - name: ghcr-secret
