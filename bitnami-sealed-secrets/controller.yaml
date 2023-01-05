@@ -26,7 +26,8 @@ spec:
         name: sealed-secrets-controller
     spec:
       containers:
-      - args: []
+      - args:
+        - --key-renew-period=0
         command:
         - controller
         env: []
