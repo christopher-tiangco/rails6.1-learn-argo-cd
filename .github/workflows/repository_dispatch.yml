@@ -11,6 +11,7 @@ env:
   TMP_DIR: tmp-files
   APP_SEALED_SECRET_TEMPLATES_DIR: app/manifest/sealed-secret-templates
   SEALED_SECRET_CONTROLLER_CERT: secret_ctrl_pub_cer.pem
+  APP_MANIFEST_DIR: app/manifest
 
 jobs:
   build:
@@ -18,18 +19,22 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
+    - name: Create directory to store temporary files
+      run: mkdir ${{ env.TMP_DIR }}
+    
     - name: Install kubeseal
       run: |
         wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v${{ env.KUBESEAL_VERSION }}/kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz
-        tar -xvzf kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz kubeseal
-        install -m 755 kubeseal /usr/local/bin/kubeseal
+        mv kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz ${{ env.TMP_DIR }}/kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz
+        tar -xvzf ${{ env.TMP_DIR }}/kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz ${{ env.TMP_DIR }}/kubeseal
+        install -m 755 ${{ env.TMP_DIR }}/kubeseal /usr/local/bin/kubeseal
         
     - name: Temporarily store sealed secrets controller public certificate to a file
-      run: mkdir ${{ env.TMP_DIR }} && echo '${{ secrets.MASHMAKE_K8S_SECRET_CTRL_PUB_CERT }}' > ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }}
+      run:  echo '${{ secrets.MASHMAKE_K8S_SECRET_CTRL_PUB_CERT }}' > ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }}
     
     - name: Update k8s SealedSecret manifests
       run: |
-        cat ${{ env.APP_SEALED_SECRET_TEMPLATES_DIR }}/rails-master-key-sealed-secret.yaml | sed "s/{ENCRYPTED_DATA_PLACEHOLDER}/$(echo -n ${{ secrets.RAILS_MASTER_KEY }} | kubeseal --cert ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }} --raw --namespace ${{ env.K8S_NAMESPACE }} --name rails-master-key | sed 's;/;\\/;g')/g" > rails-master-key-sealed-secret.yaml
+        cat ${{ env.APP_SEALED_SECRET_TEMPLATES_DIR }}/rails-master-key-sealed-secret.yaml | sed "s/{ENCRYPTED_DATA_PLACEHOLDER}/$(echo -n ${{ secrets.RAILS_MASTER_KEY }} | kubeseal --cert ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }} --raw --namespace ${{ env.K8S_NAMESPACE }} --name rails-master-key | sed 's;/;\\/;g')/g" > ${{ env.APP_MANIFEST_DIR }}/rails-master-key-sealed-secret.yaml
 
     # - name: Update Image Version
     #   id: imgupd
@@ -42,4 +47,4 @@ jobs:
       
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: Apply image name changes
+        commit_message: Apply updates to k8s resources
