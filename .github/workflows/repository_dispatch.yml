@@ -1,8 +1,9 @@
 name: Repository Dispatch
 
 on:
-  repository_dispatch:
-    types: [new-image]
+  # repository_dispatch:
+  #   types: [new-image]
+  workflow_dispatch:
 
 env:
   KUBESEAL_VERSION: 0.19.3
@@ -24,17 +25,17 @@ jobs:
         install -m 755 kubeseal /usr/local/bin/kubeseal
         
     - name: Temporarily store sealed secrets controller public certificate to a file
-      run: mkdir ${{ env.TMP_DIR }} && echo ${{ secrets.MASHMAKE_K8S_SECRET_CTRL_PUB_CERT }} > ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }}
+      run: mkdir ${{ env.TMP_DIR }} && echo '${{ secrets.MASHMAKE_K8S_SECRET_CTRL_PUB_CERT }}' > ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }}
     
     - name: Update k8s SealedSecret manifests
       run: |
         cat ${{ env.APP_SEALED_SECRET_TEMPLATES_DIR }}/rails-master-key-sealed-secret.yaml | sed "s/{ENCRYPTED_DATA_PLACEHOLDER}/$(echo -n ${{ secrets.RAILS_MASTER_KEY }} | kubeseal --cert ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }} --raw --namespace ${{ env.K8S_NAMESPACE }} --name rails-master-key | sed 's;/;\\/;g')/g" > rails-master-key-sealed-secret.yaml
 
-    - name: Update Image Version
-      id: imgupd
-      uses: mikefarah/yq@master
-      with:
-        cmd: yq eval '.spec.template.spec.containers[0].image = "${{ github.event.client_payload.image }}"' -i app/manifest/learn-rails-app-deployment.yaml
+    # - name: Update Image Version
+    #   id: imgupd
+    #   uses: mikefarah/yq@master
+    #   with:
+    #     cmd: yq eval '.spec.template.spec.containers[0].image = "${{ github.event.client_payload.image }}"' -i app/manifest/learn-rails-app-deployment.yaml
         
     - name: Repo cleanup
       run: rm -rf ${{ env.TMP_DIR }}
