@@ -26,7 +26,8 @@ jobs:
       run: |
         wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v${{ env.KUBESEAL_VERSION }}/kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz
         mv kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz ${{ env.TMP_DIR }}/kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz
-        tar -xvzf ${{ env.TMP_DIR }}/kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz ${{ env.TMP_DIR }}/kubeseal
+        tar -xvzf ${{ env.TMP_DIR }}/kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz kubeseal
+        mv kubeseal ${{ env.TMP_DIR }}/kubeseal
         install -m 755 ${{ env.TMP_DIR }}/kubeseal /usr/local/bin/kubeseal
         
     - name: Temporarily store sealed secrets controller public certificate to a file
