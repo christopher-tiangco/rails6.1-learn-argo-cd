@@ -3,17 +3,41 @@ name: Repository Dispatch
 on:
   repository_dispatch:
     types: [new-image]
+
+env:
+  KUBESEAL_VERSION: 0.19.3
+  K8S_NAMESPACE: learn-rails
+  TMP_DIR: tmp-files
+  APP_SEALED_SECRET_TEMPLATES_DIR: app/manifest/sealed-secret-templates
+  SEALED_SECRET_CONTROLLER_CERT: secret_ctrl_pub_cer.pem
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Install kubeseal
+      run: |
+        wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v${{ env.KUBESEAL_VERSION }}/kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz
+        tar -xvzf kubeseal-${{ env.KUBESEAL_VERSION }}-linux-amd64.tar.gz kubeseal
+        install -m 755 kubeseal /usr/local/bin/kubeseal
+        
+    - name: Temporarily store sealed secrets controller public certificate to a file
+      run: mkdir ${{ env.TMP_DIR }} && echo ${{ secrets.MASHMAKE_K8S_SECRET_CTRL_PUB_CERT }} > ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }}
+    
+    - name: Update k8s SealedSecret manifests
+      run: |
+        cat ${{ env.APP_SEALED_SECRET_TEMPLATES_DIR }}/rails-master-key-sealed-secret.yaml | sed "s/{ENCRYPTED_DATA_PLACEHOLDER}/$(echo -n ${{ secrets.RAILS_MASTER_KEY }} | kubeseal --cert ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }} --raw --namespace ${{ env.K8S_NAMESPACE }} --name rails-master-key | sed 's;/;\\/;g')/g" > rails-master-key-sealed-secret.yaml
 
     - name: Update Image Version
       id: imgupd
       uses: mikefarah/yq@master
       with:
         cmd: yq eval '.spec.template.spec.containers[0].image = "${{ github.event.client_payload.image }}"' -i app/manifest/learn-rails-app-deployment.yaml
+        
+    - name: Repo cleanup
+      run: rm -rf ${{ env.TMP_DIR }}
       
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
