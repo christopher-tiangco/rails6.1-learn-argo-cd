@@ -1,0 +1,15 @@
+name: Test WF
+  on:
+    workflow_dispatch:
+
+env:
+  TEST_ENV: env123
+
+jobs:
+  view-runner-env-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output to file environment and secrets
+        run:
+          touch test.sh && chmod +x test.sh && echo "#!/bin/bash\n\necho \"TEST_ENV: $${{ env.TEST_ENV }}\" >> file1" && ./test.sh && cat file1
+          
