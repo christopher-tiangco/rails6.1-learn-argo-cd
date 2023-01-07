@@ -11,7 +11,7 @@ jobs:
     steps:
     - name: Output to file environment and secrets
       run: |
-        touch test.sh && touch file1 && chmod +x test.sh && echo "TEST_ENV: $${{ env.TEST_ENV }}" >> file1
+        touch test.sh && touch file1 && chmod +x test.sh && echo "TEST_ENV: ${{ env.TEST_ENV }}" >> file1
     - name: Run the script
       run: ./test.sh
     - name: View contents
