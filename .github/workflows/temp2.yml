@@ -16,4 +16,6 @@ jobs:
       #  run: env
       - name: Store GitHub Secrets to runner environment variables
         run: |
-          echo '${{ toJSON(secrets) }}' | jq -r 'keys | .[]'
+          gh_secret_names=( $(echo '${{ toJSON(secrets) }}' | jq -r 'keys | .[]') ) && for i in "${gh_secret_names[@]}"; do echo $i=$(echo '${{ toJSON(secrets) }}' | jq -r ".$i") >> $GITHUB_ENV; done;
+      - name: View runner environment variables
+        run: env
