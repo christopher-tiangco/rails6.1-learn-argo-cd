@@ -11,6 +11,6 @@ jobs:
       - name: Store GitHub Secrets to runner environent variables
         run: |
           gh_secret_names=$(gh secret list -a actions | sed -e 's/\s.*$//')
-          for i in "${gh_secret_names[@]}"; do echo "$i=${{ secrets.$(echo $i) }}" >> $GITHUB_ENV; done
+          for i in "${gh_secret_names[@]}"; do echo "$i=${{ $i }}" >> $GITHUB_ENV; done
       - name: View runner environment variables
         run: env
