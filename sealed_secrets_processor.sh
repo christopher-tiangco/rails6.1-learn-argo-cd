@@ -20,13 +20,14 @@ do
   for (( j=0; j<$data_length; j++ ))
   do
     gh_secret_name=$(yq ".$i.data.[$j].gh_secret_name" secrets_mapping.yaml)
+    gh_secret_env_value=$(eval echo $gh_secret_name)
 
-    [[ "${$gh_secret_name}" == "" ]] && echo "env var non existent" || echo "env var exists!!!"
+    [[ "$gh_secret_env_value" == "" ]] && echo "env var non existent" || echo "env var exists!!!"
 
     target_placeholder=$(yq ".$i.data.[$j].target_placeholder" secrets_mapping.yaml)
-    sealed_secret=$(echo -n "$$gh_secret_name" | kubeseal --cert $TMP_DIR/$SEALED_SECRET_CONTROLLER_CERT --raw --namespace $K8S_NAMESPACE --name $i | sed 's;/;\\/;g')
+    sealed_secret=$(echo -n "$gh_secret_env_value" | kubeseal --cert $TMP_DIR/$SEALED_SECRET_CONTROLLER_CERT --raw --namespace $K8S_NAMESPACE --name $i | sed 's;/;\\/;g')
 
-    echo "${$gh_secret_name}"
+    echo "$gh_secret_env_value"
     printf "\n"
     echo "Processing $i for $gh_secret_name..."
 
