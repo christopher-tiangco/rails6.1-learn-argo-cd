@@ -37,7 +37,7 @@ jobs:
     
     - name: Run script
       run: |
-        chmod +x test.sh && ./test.sh
+        chmod +x sealed_secrets_processor.sh && ./sealed_secrets_processor.sh
         
 
     - name: Repo cleanup
