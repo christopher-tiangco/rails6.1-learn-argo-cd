@@ -20,7 +20,7 @@ do
   for (( j=0; j<$data_length; j++ ))
   do
     gh_secret_name=$(yq ".$i.data.[$j].gh_secret_name" secrets_mapping.yaml)
-    gh_secret_env_value=$(eval echo $gh_secret_name)
+    gh_secret_env_value=$(eval echo '$'$gh_secret_name)
 
     [[ "$gh_secret_env_value" == "" ]] && echo "env var non existent" || echo "env var exists!!!"
 
