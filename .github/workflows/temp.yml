@@ -9,6 +9,8 @@ env:
   TMP_DIR: tmp-files
   APP_SEALED_SECRET_TEMPLATES_DIR: app/manifest/sealed-secret-templates
   SEALED_SECRET_CONTROLLER_CERT: secret_ctrl_pub_cer.pem
+  MASHMAKE_K8S_SECRET_CTRL_PUB_CERT: ${{ secrets.MASHMAKE_K8S_SECRET_CTRL_PUB_CERT }}
+  RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
 
 jobs:
   test:
