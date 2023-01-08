@@ -1,6 +1,8 @@
 name: Copy GitHub secrets to runner env
 on:
   workflow_dispatch:
+env:
+  GH_TOKEN: ${{ github.token }}
 jobs:
   test:
     runs-on: ubuntu-latest
