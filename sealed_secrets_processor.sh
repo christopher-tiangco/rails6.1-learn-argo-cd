@@ -26,6 +26,8 @@ do
     target_placeholder=$(yq ".$i.data.[$j].target_placeholder" secrets_mapping.yaml)
     sealed_secret=$(echo -n "\$$gh_secret_name" | kubeseal --cert $TMP_DIR/$SEALED_SECRET_CONTROLLER_CERT --raw --namespace $K8S_NAMESPACE --name $i | sed 's;/;\\/;g')
 
+    echo "\$$gh_secret_name"
+    printf "\n"
     echo "Processing $i for $gh_secret_name..."
 
     printf "\n\n"
