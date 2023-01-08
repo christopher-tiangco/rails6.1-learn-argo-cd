@@ -1,4 +1,4 @@
-name: Repository Dispatch
+name: Test1
 
 on:
   workflow_dispatch:
