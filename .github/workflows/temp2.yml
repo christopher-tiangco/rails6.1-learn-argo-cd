@@ -16,4 +16,4 @@ jobs:
       #  run: env
       - name: Store GitHub Secrets to runner environment variables
         run: |
-          echo ${{ toJSON(secrets) }}
+          echo '${{ toJSON(secrets) }}' | jq -r 'keys | .[]'
