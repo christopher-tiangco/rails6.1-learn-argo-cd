@@ -1,0 +1,9 @@
+name: Copy GitHub secrets to runner env
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get all GitHub secrets
+        run: gh secret list -a actions
