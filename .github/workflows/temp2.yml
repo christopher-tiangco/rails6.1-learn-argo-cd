@@ -9,4 +9,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Get all GitHub secrets
-        run: gh secret list -a actions | cut -d " " -f 1
+        run: echo $(gh secret list -a actions | cut -d " " -f 1)
