@@ -32,9 +32,13 @@ jobs:
     - name: Temporarily store sealed secrets controller public certificate to a file
       run:  echo '${{ secrets.MASHMAKE_K8S_SECRET_CTRL_PUB_CERT }}' > ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }}
     
+    - name: Store GitHub Secrets to runner environment variables
+      run: |
+        gh_secret_names=( $(echo '${{ toJSON(secrets) }}' | jq -r 'keys | .[]') ) && for i in "${gh_secret_names[@]}"; do echo $i=$(echo '${{ toJSON(secrets) }}' | jq -r ".$i") >> $GITHUB_ENV; done;
+    
     - name: Update k8s SealedSecret manifests
       run: |
-        cat ${{ env.APP_SEALED_SECRET_TEMPLATES_DIR }}/rails-master-key-sealed-secret.yaml | sed "s/~ENCRYPTED_RAILS_MASTER_KEY~/$(echo -n ${{ secrets.RAILS_MASTER_KEY }} | kubeseal --cert ${{ env.TMP_DIR }}/${{ env.SEALED_SECRET_CONTROLLER_CERT }} --raw --namespace ${{ env.K8S_NAMESPACE }} --name rails-master-key | sed 's;/;\\/;g')/g" > ${{ env.APP_MANIFEST_DIR }}/rails-master-key-sealed-secret.yaml
+        chmod +x sealed_secrets_processor.sh && ./sealed_secrets_processor.sh
 
     - name: Update Image Version
       id: imgupd
