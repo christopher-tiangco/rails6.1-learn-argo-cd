@@ -8,7 +8,8 @@
 # - Uses jq to parse GitHub secrets context object
 # - Uses kubeseal encrypter for encrypting a string
 # - Relies on the existence of environment variables set in the GitHub Actions workflow invoking this shell script.
-#   - A GitHub Actions workflow has to handle sending the secrets to the runner environment
+#   - A GitHub Actions workflow has to handle sending the secrets to the runner environment as well as generating temporary files for the public
+#     certificate
 
 mapping_file='secrets_mapping.yaml'
 
@@ -25,7 +26,11 @@ if [ ! -f $TMP_DIR/$SEALED_SECRET_CONTROLLER_CERT ]; then
   echo "$SEALED_SECRET_CONTROLLER_CERT DOES NOT exist"
   exit 1
 fi
-if [[ "$K8S_NAMESPACE" == "" ]]; then
+if [ "$APP_SEALED_SECRET_TEMPLATES_DIR" == "" || ! -d $APP_SEALED_SECRET_TEMPLATES_DIR ]; then
+  echo "$APP_SEALED_SECRET_TEMPLATES_DIR DOES NOT exist"
+  exit 1
+fi
+if [ "$K8S_NAMESPACE" == "" ]; then
   echo "\$K8S_NAMESPACE is NOT set"
   exit 1
 fi
@@ -41,7 +46,8 @@ do
   data_length=$(yq ".$i.data | length" $mapping_file)
   target_filename=$(yq ".$i.sealed_secret_manifest_filename" $mapping_file)
   
-  #@TODO: Skip this iteration if sealed secret template (as specified by the target_filename) does not exist
+  # Skip this iteration if sealed secret template (as specified by the target_filename) does not exist
+  [[ ! -f $APP_SEALED_SECRET_TEMPLATES_DIR/$target_filename ]] && continue
 
   for (( j=0; j<$data_length; j++ ))
   do
@@ -57,7 +63,7 @@ do
     sealed_secret_file_updated=true
   done
   
-  #@TODO: If sealed_secret_file_updated, increment generated_sealed_secrets_counter
+  [ $sealed_secret_file_updated == true ] && $generated_sealed_secrets_counter++
 done
 
 echo "Generated / Updated $generated_sealed_secrets_counter sealed secret manifests"
