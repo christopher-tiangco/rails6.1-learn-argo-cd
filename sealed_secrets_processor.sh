@@ -50,6 +50,8 @@ do
   data_length=$(yq ".$i.data | length" $mapping_file)
   target_filename=$(yq ".$i.sealed_secret_manifest_filename" $mapping_file)
   
+  echo "$target_filename | secret data length = $data_length"
+  
   # Skip this iteration if sealed secret template (as specified by the target_filename) does not exist
   [[ ! -f $APP_SEALED_SECRET_TEMPLATES_DIR/$target_filename ]] && continue
 
@@ -60,6 +62,8 @@ do
 
     # Skip this iteration if GitHub secret does not exist
     [[ "$gh_secret_env_value" == "" ]] && continue
+
+    echo "replacing placholders for $target_filename..."
 
     target_placeholder=$(yq ".$i.data.[$j].target_placeholder" $mapping_file)
     sealed_secret=$(echo -n "$gh_secret_env_value" | kubeseal --cert $TMP_DIR/$SEALED_SECRET_CONTROLLER_CERT --raw --namespace $K8S_NAMESPACE --name $i | sed 's;/;\\/;g')
