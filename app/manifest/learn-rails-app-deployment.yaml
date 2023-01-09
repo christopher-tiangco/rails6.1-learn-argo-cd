@@ -36,5 +36,17 @@ spec:
                   name: redis-production-uri
                   key: redis_production_uri
                   optional: false
+            - name: TEST_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: test-cred
+                  key: username
+                  optional: false
+            - name: TEST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: test-cred
+                  key: password
+                  optional: false
       imagePullSecrets:
         - name: ghcr-secret
