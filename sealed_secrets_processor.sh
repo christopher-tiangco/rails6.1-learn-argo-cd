@@ -63,7 +63,7 @@ do
     sealed_secret_file_updated=true
   done
   
-  [ $sealed_secret_file_updated == true ] && $generated_sealed_secrets_counter++
+  [ $sealed_secret_file_updated == true ] && (($generated_sealed_secrets_counter++))
 done
 
 echo "Generated / Updated $generated_sealed_secrets_counter sealed secret manifests"
