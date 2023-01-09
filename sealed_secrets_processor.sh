@@ -50,10 +50,11 @@ do
   data_length=$(yq ".$i.data | length" $mapping_file)
   target_filename=$(yq ".$i.sealed_secret_manifest_filename" $mapping_file)
   
-  echo "$target_filename | secret data length = $data_length"
-  
   # Skip this iteration if sealed secret template (as specified by the target_filename) does not exist
   [[ ! -f $APP_SEALED_SECRET_TEMPLATES_DIR/$target_filename ]] && continue
+  
+  # Copy the template file into a temporary directory. This copied file will have the string replacements
+  cp $APP_SEALED_SECRET_TEMPLATES_DIR/$target_filename $TMP_DIR
 
   for (( j=0; j<$data_length; j++ ))
   do
@@ -63,17 +64,19 @@ do
     # Skip this iteration if GitHub secret does not exist
     [[ "$gh_secret_env_value" == "" ]] && continue
 
-    echo "replacing placholders for $target_filename..."
-
     target_placeholder=$(yq ".$i.data.[$j].target_placeholder" $mapping_file)
     sealed_secret=$(echo -n "$gh_secret_env_value" | kubeseal --cert $TMP_DIR/$SEALED_SECRET_CONTROLLER_CERT --raw --namespace $K8S_NAMESPACE --name $i | sed 's;/;\\/;g')
 
     # Echo contents of sealed secret template, then using `sed` replace target_placeholder with sealed_secret then output to a file at app/manifest
-    cat $APP_SEALED_SECRET_TEMPLATES_DIR/$target_filename | sed "s/$target_placeholder/$sealed_secret/g" > $APP_MANIFEST_DIR/$target_filename
+    # cat $APP_SEALED_SECRET_TEMPLATES_DIR/$target_filename | sed "s/$target_placeholder/$sealed_secret/g" > $APP_MANIFEST_DIR/$target_filename
+    sed -i "s/$target_placeholder/$sealed_secret/g" $TMP_DIR/$target_filename
     sealed_secret_file_updated=true
   done
   
-  [ $sealed_secret_file_updated == true ] && ((generated_sealed_secrets_counter++))
+  if [ $sealed_secret_file_updated == true ]; then
+    cp $TMP_DIR/$target_filename $APP_MANIFEST_DIR/$target_filename
+    ((generated_sealed_secrets_counter++))
+  fi
 done
 
 echo "Generated / Updated $generated_sealed_secrets_counter sealed secret manifests"
