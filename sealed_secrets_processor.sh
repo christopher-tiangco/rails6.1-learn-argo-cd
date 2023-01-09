@@ -21,7 +21,7 @@ if [ ! -d $TMP_DIR ]; then
   echo "$TMP_DIR DOES NOT exist"
   exit 1
 fi
-if [ ! -f $SEALED_SECRET_CONTROLLER_CERT ]; then
+if [ ! -f $TMP_DIR/$SEALED_SECRET_CONTROLLER_CERT ]; then
   echo "$SEALED_SECRET_CONTROLLER_CERT DOES NOT exist"
   exit 1
 fi
