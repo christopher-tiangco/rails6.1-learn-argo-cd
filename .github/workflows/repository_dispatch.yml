@@ -11,6 +11,7 @@ env:
   APP_SEALED_SECRET_TEMPLATES_DIR: app/manifest/sealed-secret-templates
   SEALED_SECRET_CONTROLLER_CERT: secret_ctrl_pub_cer.pem
   APP_MANIFEST_DIR: app/manifest
+  ARGOCD_SYNC_API_URL: https://argocd-k8s.mashmake.com:20081/api/v1/applications/learn-rails-app/sync
 
 jobs:
   update-k8s-manifests:
@@ -52,3 +53,7 @@ jobs:
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: Apply updates to k8s resources
+        
+    - name: Trigger ArgoCD API to sync with GitHub
+      run: |
+        curl --insecure -X POST ${{ env.ARGOCD_SYNC_API_URL }} -H "Authorization: Bearer ${{ secrets.ARGOCD_API_TOKEN }}"
