@@ -67,8 +67,7 @@ do
     target_placeholder=$(yq ".$i.data.[$j].target_placeholder" $mapping_file)
     sealed_secret=$(echo -n "$gh_secret_env_value" | kubeseal --cert $TMP_DIR/$SEALED_SECRET_CONTROLLER_CERT --raw --namespace $K8S_NAMESPACE --name $i | sed 's;/;\\/;g')
 
-    # Echo contents of sealed secret template, then using `sed` replace target_placeholder with sealed_secret then output to a file at app/manifest
-    # cat $APP_SEALED_SECRET_TEMPLATES_DIR/$target_filename | sed "s/$target_placeholder/$sealed_secret/g" > $APP_MANIFEST_DIR/$target_filename
+    # Using `sed` replace target_placeholder with sealed_secret in the temporary template file
     sed -i "s/$target_placeholder/$sealed_secret/g" $TMP_DIR/$target_filename
     sealed_secret_file_updated=true
   done
