@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: learn-rails-app
-          image: ghcr.io/christopher-tiangco/rails6.1:learn-2023-01-15_07-34-35_UTC
+          image: ghcr.io/christopher-tiangco/rails6.1:learn-2023-01-15_08-59-25_UTC
           ports:
             - containerPort: 3000
           env:
